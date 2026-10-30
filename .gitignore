@@ -1,0 +1,24 @@
+# dados locais (banco, fotos dos canais, segredos)
+data/
+*.db
+*.sqlite
+*.sqlite3
+.env
+*.env
+!.env.example
+secrets.env
+secrets.json
+tg_img/
+.ingest_token
+
+# lista local de termos proibidos do tools/check_public.py (nunca vai para o git)
+.public-denylist
+
+# python
+__pycache__/
+.venv/
+.pytest_cache/
+
+# frontend
+node_modules/
+dist/

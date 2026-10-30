@@ -1,0 +1,69 @@
+# PC Builder no Docker. Subir: `docker compose up -d --build`. Painel: http://127.0.0.1:8787
+#
+# O container escuta em 0.0.0.0 (senão a porta publicada não o alcança), mas o HOST só publica em 127.0.0.1.
+# Não troque por "8787:8787": isso abriria o painel para a rede. Para acessar de outro aparelho, use um proxy
+# reverso local e PCB_ALLOWED_HOSTS (veja o README, seção Docker).
+#
+# Variáveis opcionais vêm do arquivo `.env` ao lado (copie de `.env.example`) ou do ambiente. Sem `.env` também sobe.
+
+services:
+  pc-builder:
+    build: .
+    image: pc-builder:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8787:8787"          # só loopback do host, nunca 0.0.0.0
+    env_file:
+      - path: .env
+        required: false                # o .env pode não existir
+    environment:
+      PCB_DATA_DIR: /data
+      PCB_SCHEDULER: ${PCB_SCHEDULER:-1}              # agendador interno ligado por padrão no Docker
+      # Ollama: vazio = ignorado. Com o perfil `ollama`, ponha no .env (ou no comando):
+      #   PCB_OLLAMA_URL=http://ollama:11434
+      # (ou deixe vazio e digite esse endereço na tela, em Configurações → IA local)
+      PCB_OLLAMA_URL: ${PCB_OLLAMA_URL:-}
+    volumes:
+      - pcb-data:/data                 # banco, fotos, secrets.env (0600), agendador.json, rodada.lock
+    read_only: true                    # o sistema de arquivos da imagem fica só de leitura
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # healthcheck: herdado da imagem (GET /api/health)
+
+  # IA local opcional: `docker compose --profile ollama up -d`. Sem publicar porta no host: só o app a alcança,
+  # pela rede interna do compose, em http://ollama:11434.
+  # Sem GPU o Ollama fica lento; sem ele o app usa o classificador por regras (modo `rules`), que é o recomendado.
+  ollama:
+    image: ollama/ollama:0.40.11
+    profiles: ["ollama"]
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama    # modelos baixados (grandes)
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # GPU NVIDIA (precisa do NVIDIA Container Toolkit no host). Tire o # das linhas abaixo para usar:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  pcb-data:
+  ollama-models:

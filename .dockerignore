@@ -1,0 +1,37 @@
+# nunca entram na imagem: dados locais, segredos, dependências e builds locais
+.git
+.gitignore
+data/
+**/data/
+*.db
+**/*.db
+*.sqlite
+*.sqlite3
+.env
+*.env
+**/.env
+!.env.example
+secrets.env
+secrets.json
+tg_img/
+**/tg_img/
+.public-denylist
+.ingest_token
+
+# o que a imagem não usa
+docs/
+tools/
+deploy/
+**/*.md
+backend/tests/
+frontend/src/test/
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# dependências e builds locais (a imagem refaz: npm ci, uv sync)
+**/node_modules/
+**/dist/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/

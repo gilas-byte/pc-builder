@@ -1,0 +1,122 @@
+{
+ "all": {
+  "invented": 0,
+  "kinds": {
+   "monitor": {
+    "n": 26,
+    "none": 0,
+    "ok": 26
+   },
+   "nao_peca": {
+    "n": 257,
+    "none": 1,
+    "ok": 256
+   },
+   "peca:case": {
+    "n": 3,
+    "none": 0,
+    "ok": 3
+   },
+   "peca:cooler": {
+    "n": 4,
+    "none": 0,
+    "ok": 4
+   },
+   "peca:gpu": {
+    "n": 2,
+    "none": 0,
+    "ok": 2
+   },
+   "peca:storage": {
+    "n": 3,
+    "none": 0,
+    "ok": 3
+   }
+  },
+  "n": 295,
+  "none": 1,
+  "ok": 294,
+  "pct": 99.7
+ },
+ "sets": {
+  "dev": {
+   "invented": 0,
+   "kinds": {
+    "monitor": {
+     "n": 9,
+     "none": 0,
+     "ok": 9
+    },
+    "nao_peca": {
+     "n": 132,
+     "none": 0,
+     "ok": 132
+    },
+    "peca:case": {
+     "n": 2,
+     "none": 0,
+     "ok": 2
+    },
+    "peca:cooler": {
+     "n": 2,
+     "none": 0,
+     "ok": 2
+    },
+    "peca:gpu": {
+     "n": 1,
+     "none": 0,
+     "ok": 1
+    },
+    "peca:storage": {
+     "n": 2,
+     "none": 0,
+     "ok": 2
+    }
+   },
+   "n": 148,
+   "none": 0,
+   "ok": 148,
+   "pct": 100.0
+  },
+  "test": {
+   "invented": 0,
+   "kinds": {
+    "monitor": {
+     "n": 17,
+     "none": 0,
+     "ok": 17
+    },
+    "nao_peca": {
+     "n": 125,
+     "none": 1,
+     "ok": 124
+    },
+    "peca:case": {
+     "n": 1,
+     "none": 0,
+     "ok": 1
+    },
+    "peca:cooler": {
+     "n": 2,
+     "none": 0,
+     "ok": 2
+    },
+    "peca:gpu": {
+     "n": 1,
+     "none": 0,
+     "ok": 1
+    },
+    "peca:storage": {
+     "n": 1,
+     "none": 0,
+     "ok": 1
+    }
+   },
+   "n": 147,
+   "none": 1,
+   "ok": 146,
+   "pct": 99.3
+  }
+ },
+ "source": "medição manual das regras contra ofertas de canais públicos rotuladas à mão"
+}

@@ -1,0 +1,498 @@
+{
+ "_comment": "Peças que a coleta procura todo dia. must = palavras inteiras que o título PRECISA ter; exclude = palavras que descartam. alert_below (reais) = aviso no Telegram quando o melhor preço fica abaixo. Proposta inicial de 09/10/2026: custo-benefício AM4 (upgrade do PC atual) + plataformas AM5/Intel pra build completa + os alvos do cron antigo (GPU até R$1000, HD 2TB até R$350).",
+ "parts": [
+  {
+   "category": "cpu",
+   "brand": "AMD",
+   "model": "Ryzen 5 5600",
+   "query": "ryzen 5 5600",
+   "must": [
+    "ryzen 5 5600"
+   ],
+   "exclude": [
+    "5600x",
+    "5600g",
+    "5600gt",
+    "5600xt",
+    "5600t"
+   ],
+   "specs": {
+    "socket": "AM4"
+   }
+  },
+  {
+   "category": "cpu",
+   "brand": "AMD",
+   "model": "Ryzen 7 5700X3D",
+   "query": "ryzen 7 5700x3d",
+   "must": [
+    "5700x3d"
+   ],
+   "specs": {
+    "socket": "AM4"
+   }
+  },
+  {
+   "category": "cpu",
+   "brand": "AMD",
+   "model": "Ryzen 7 5800X3D",
+   "query": "ryzen 7 5800x3d",
+   "must": [
+    "5800x3d"
+   ],
+   "specs": {
+    "socket": "AM4"
+   }
+  },
+  {
+   "category": "cpu",
+   "brand": "AMD",
+   "model": "Ryzen 5 7600",
+   "query": "ryzen 5 7600",
+   "must": [
+    "ryzen 5 7600"
+   ],
+   "exclude": [
+    "7600x",
+    "7600x3d"
+   ],
+   "specs": {
+    "socket": "AM5"
+   }
+  },
+  {
+   "category": "cpu",
+   "brand": "Intel",
+   "model": "Core i5-12400F",
+   "query": "i5 12400f",
+   "must": [
+    "12400f"
+   ],
+   "specs": {
+    "socket": "LGA1700"
+   }
+  },
+  {
+   "category": "motherboard",
+   "brand": "ASUS",
+   "model": "B550M (TUF/Prime)",
+   "query": "placa mae b550m asus",
+   "must": [
+    "b550m",
+    "asus"
+   ],
+   "specs": {
+    "socket": "AM4",
+    "memory_type": "DDR4",
+    "form_factor": "mATX"
+   }
+  },
+  {
+   "category": "motherboard",
+   "brand": "Gigabyte",
+   "model": "B650M (linha)",
+   "query": "placa mae gigabyte b650m",
+   "must": [
+    "b650m",
+    "gigabyte"
+   ],
+   "exclude": [
+    "ddr4"
+   ],
+   "specs": {
+    "socket": "AM5",
+    "memory_type": "DDR5",
+    "form_factor": "mATX"
+   }
+  },
+  {
+   "category": "motherboard",
+   "brand": "MSI",
+   "model": "B760M DDR4",
+   "query": "placa mae msi b760m ddr4",
+   "must": [
+    "b760m",
+    "ddr4",
+    "msi"
+   ],
+   "specs": {
+    "socket": "LGA1700",
+    "memory_type": "DDR4",
+    "form_factor": "mATX"
+   }
+  },
+  {
+   "category": "ram",
+   "brand": "Genérica",
+   "model": "32GB (2x16) DDR4 3200",
+   "query": "memoria 32gb 2x16 ddr4 3200",
+   "must": [
+    "32gb",
+    "2x16gb",
+    "ddr4",
+    "3200"
+   ],
+   "exclude": [
+    "notebook",
+    "sodimm",
+    "so dimm"
+   ],
+   "specs": {
+    "memory_type": "DDR4"
+   }
+  },
+  {
+   "category": "ram",
+   "brand": "Genérica",
+   "model": "32GB (2x16) DDR5 6000",
+   "query": "memoria 32gb 2x16 ddr5 6000",
+   "must": [
+    "32gb",
+    "2x16gb",
+    "ddr5",
+    "6000"
+   ],
+   "exclude": [
+    "notebook",
+    "sodimm",
+    "so dimm"
+   ],
+   "specs": {
+    "memory_type": "DDR5"
+   }
+  },
+  {
+   "category": "gpu",
+   "brand": "AMD",
+   "model": "Radeon RX 6600 8GB",
+   "query": "rx 6600 8gb",
+   "must": [
+    "rx 6600"
+   ],
+   "exclude": [
+    "6600 xt",
+    "6600xt"
+   ],
+   "specs": {
+    "recommended_psu_w": 450
+   },
+   "alert_below": 1000
+  },
+  {
+   "category": "gpu",
+   "brand": "NVIDIA",
+   "model": "GeForce RTX 3050 8GB",
+   "query": "rtx 3050 8gb",
+   "must": [
+    "rtx 3050",
+    "8gb"
+   ],
+   "exclude": [
+    "notebook",
+    "laptop"
+   ],
+   "specs": {
+    "recommended_psu_w": 550
+   },
+   "alert_below": 1000
+  },
+  {
+   "category": "gpu",
+   "brand": "AMD",
+   "model": "Radeon RX 7600 8GB",
+   "query": "rx 7600 8gb",
+   "must": [
+    "rx 7600"
+   ],
+   "exclude": [
+    "7600 xt",
+    "7600xt"
+   ],
+   "specs": {
+    "recommended_psu_w": 550
+   }
+  },
+  {
+   "category": "gpu",
+   "brand": "NVIDIA",
+   "model": "GeForce RTX 4060 8GB",
+   "query": "rtx 4060 8gb",
+   "must": [
+    "rtx 4060"
+   ],
+   "exclude": [
+    "4060 ti",
+    "4060ti",
+    "notebook",
+    "laptop"
+   ],
+   "specs": {
+    "recommended_psu_w": 550
+   }
+  },
+  {
+   "category": "gpu",
+   "brand": "NVIDIA",
+   "model": "GeForce RTX 5060 8GB",
+   "query": "rtx 5060 8gb",
+   "must": [
+    "rtx 5060"
+   ],
+   "exclude": [
+    "5060 ti",
+    "5060ti",
+    "notebook",
+    "laptop"
+   ],
+   "specs": {
+    "recommended_psu_w": 550
+   }
+  },
+  {
+   "category": "gpu",
+   "brand": "NVIDIA",
+   "model": "GeForce RTX 4070 Super 12GB",
+   "query": "rtx 4070 super",
+   "must": [
+    "rtx 4070",
+    "super"
+   ],
+   "exclude": [
+    "ti super",
+    "4070 ti"
+   ],
+   "specs": {
+    "recommended_psu_w": 650
+   }
+  },
+  {
+   "category": "storage",
+   "brand": "Kingston",
+   "model": "NV3 1TB NVMe",
+   "query": "ssd kingston nv3 1tb",
+   "must": [
+    "nv3",
+    "1tb"
+   ],
+   "specs": {
+    "type": "nvme"
+   },
+   "exclude": [
+    "2230"
+   ]
+  },
+  {
+   "category": "storage",
+   "brand": "WD",
+   "model": "Blue 2TB HD",
+   "query": "hd wd blue 2tb",
+   "must": [
+    "wd",
+    "blue",
+    "2tb"
+   ],
+   "exclude": [
+    "ssd",
+    "nvme",
+    "sn580",
+    "sa510",
+    "externo"
+   ],
+   "specs": {
+    "type": "hdd"
+   },
+   "alert_below": 350
+  },
+  {
+   "category": "storage",
+   "brand": "Seagate",
+   "model": "BarraCuda 2TB HD",
+   "query": "hd seagate barracuda 2tb",
+   "must": [
+    "barracuda",
+    "2tb"
+   ],
+   "exclude": [
+    "ssd",
+    "externo"
+   ],
+   "specs": {
+    "type": "hdd"
+   },
+   "alert_below": 350
+  },
+  {
+   "category": "psu",
+   "brand": "MSI",
+   "model": "MAG A650BN 650W",
+   "query": "fonte msi a650bn",
+   "must": [
+    "a650bn"
+   ],
+   "specs": {
+    "wattage_w": 650
+   }
+  },
+  {
+   "category": "psu",
+   "brand": "Corsair",
+   "model": "RM750e 750W",
+   "query": "fonte corsair rm750e",
+   "must": [
+    "rm750e"
+   ],
+   "specs": {
+    "wattage_w": 750
+   }
+  },
+  {
+   "category": "case",
+   "brand": "Montech",
+   "model": "AIR 100 ARGB",
+   "query": "gabinete montech air 100",
+   "must": [
+    "montech",
+    "air 100"
+   ],
+   "specs": {
+    "motherboard_support": [
+     "mATX",
+     "ITX"
+    ]
+   },
+   "exclude": [
+    "lite"
+   ]
+  },
+  {
+   "category": "case",
+   "brand": "Lian Li",
+   "model": "Lancool 216",
+   "query": "gabinete lian li lancool 216",
+   "must": [
+    "lancool 216"
+   ],
+   "specs": {
+    "motherboard_support": [
+     "ATX",
+     "mATX",
+     "ITX"
+    ]
+   }
+  },
+  {
+   "category": "cooler",
+   "brand": "DeepCool",
+   "model": "AK400",
+   "query": "cooler deepcool ak400",
+   "must": [
+    "deepcool",
+    "ak400"
+   ],
+   "exclude": [
+    "ak400 digital"
+   ],
+   "specs": {
+    "sockets": [
+     "AM4",
+     "AM5",
+     "LGA1700"
+    ]
+   }
+  },
+  {
+   "category": "cooler",
+   "brand": "Thermalright",
+   "model": "Peerless Assassin 120 SE",
+   "query": "thermalright peerless assassin 120 se",
+   "must": [
+    "peerless assassin"
+   ],
+   "specs": {
+    "sockets": [
+     "AM4",
+     "AM5",
+     "LGA1700"
+    ]
+   }
+  },
+  {
+   "category": "storage",
+   "brand": "Seagate",
+   "model": "SkyHawk 2TB HD",
+   "query": "hd seagate skyhawk 2tb",
+   "must": [
+    "skyhawk",
+    "2tb"
+   ],
+   "exclude": [
+    "externo",
+    "ssd"
+   ],
+   "specs": {}
+  },
+  {
+   "category": "storage",
+   "brand": "Seagate",
+   "model": "BarraCuda 8TB HD",
+   "query": "hd seagate barracuda 8tb",
+   "must": [
+    "barracuda",
+    "8tb"
+   ],
+   "exclude": [
+    "externo",
+    "ssd"
+   ],
+   "specs": {}
+  },
+  {
+   "category": "case",
+   "brand": "Rise Mode",
+   "model": "Glass 06X",
+   "query": "gabinete rise mode glass 06x",
+   "must": [
+    "glass 06x"
+   ],
+   "specs": {
+    "motherboard_support": [
+     "ATX",
+     "mATX",
+     "ITX"
+    ]
+   }
+  },
+  {
+   "category": "case",
+   "brand": "Montech",
+   "model": "X2 Plus",
+   "query": "gabinete montech x2 plus",
+   "must": [
+    "x2 plus"
+   ],
+   "specs": {
+    "motherboard_support": [
+     "ATX",
+     "mATX",
+     "ITX"
+    ]
+   }
+  },
+  {
+   "category": "case",
+   "brand": "Lian Li",
+   "model": "Vector V100",
+   "query": "gabinete lian li vector v100",
+   "must": [
+    "vector v100"
+   ],
+   "specs": {
+    "motherboard_support": [
+     "ATX",
+     "mATX",
+     "ITX"
+    ]
+   }
+  }
+ ]
+}

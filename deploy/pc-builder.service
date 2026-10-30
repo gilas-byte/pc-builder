@@ -1,0 +1,28 @@
+# MODELO de serviço systemd de USUÁRIO para o PC Builder (não precisa de root).
+#
+# Como usar (troque <pasta-do-clone> pelo caminho do clone, relativo à sua home; %h = sua home):
+#   1. cp deploy/pc-builder.service ~/.config/systemd/user/
+#   2. edite as linhas WorkingDirectory e ExecStart abaixo
+#   3. systemctl --user daemon-reload && systemctl --user enable --now pc-builder
+#
+# O app escuta só em 127.0.0.1:8787. Para abrir de outro aparelho, use um proxy reverso local
+# (ex.: `tailscale serve`), nunca 0.0.0.0. Se o `uv` não estiver em /usr/bin ou /usr/local/bin,
+# ponha o caminho completo no ExecStart (ex.: %h/.local/bin/uv).
+
+[Unit]
+Description=PC Builder (dashboard de preços de peças)
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/<pasta-do-clone>/backend
+ExecStart=/usr/bin/env uv run --frozen --no-dev python -m app.serve
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+# Endurecimento leve (serviço de usuário): sem privilégio novo, /tmp próprio.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

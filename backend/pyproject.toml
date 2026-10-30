@@ -1,0 +1,17 @@
+[project]
+name = "pc-builder-backend"
+version = "0.2.0"
+description = "Backend do PC Builder: preços de peças de PC"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "httpx>=0.27",  # coleta de preços
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx>=0.27"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
