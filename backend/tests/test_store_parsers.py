@@ -350,14 +350,21 @@ def test_pichau_registrada_e_url_de_busca():
     assert STORES["pichau"][0] is pichau_search_url and STORES["pichau"][1] is parse_pichau
 
 
-# ------------------------------------------------------------------ fetch por loja (Scrapling só na Pichau)
+# ------------------------------------------------------------------ fetch único: Scrapling em todas as lojas
 
-def test_fetch_roteado_usa_scrapling_so_na_pichau():
-    f = run.routed_fetch(http=lambda u: "httpx", scrapling=lambda u: "scrapling")
-    assert f("https://www.pichau.com.br/search?q=x") == "scrapling"
-    assert f("https://www.kabum.com.br/busca/x") == "httpx"
-    assert f("https://www.terabyteshop.com.br/busca?str=x") == "httpx"
-    assert f("https://www.amazon.com.br/s?k=x") == "httpx"
+def test_coleta_usa_scrapling_em_todas_as_lojas_e_nunca_httpx(tmp_path, wl_file, monkeypatch, capsys):
+    import httpx
+    monkeypatch.setattr(httpx, "Client", lambda *a, **k: pytest.fail("a coleta de lojas não usa mais httpx"))
+    pedidas = []
+
+    def get(url):
+        pedidas.append(url)
+        loja = next(s for s in PAGES if s in url or (s == "terabyte" and "terabyteshop" in url))
+        return 200, PAGES[loja].encode()
+    monkeypatch.setattr(run, "_scrapling_get", get)
+    assert run.main(["--watchlist", wl_file, "--dry-run"], db_path=tmp_path / "t.db", pause=0) == 0
+    hosts = {u.split("/")[2] for u in pedidas}
+    assert hosts == {"www.kabum.com.br", "www.pichau.com.br", "www.terabyteshop.com.br", "www.amazon.com.br"}
 
 
 @pytest.mark.parametrize("status", [403, 429, 503])
