@@ -9,10 +9,11 @@ CATEGORIES = ("cpu", "motherboard", "ram", "gpu", "storage", "psu", "case", "coo
 UPGRADE_CATEGORIES = tuple(c for c in CATEGORIES if c != "motherboard")
 
 # (slug, nome, site, motivo de NÃO coletar — None = a coleta automática lê a loja)
-# Teste de 09/10/2026: Pichau, Mercado Livre e Shopee bloqueiam robô; regra do projeto = não contornar.
+# Teste de 09/10/2026: Mercado Livre e Shopee bloqueiam robô; regra do projeto = não contornar.
+# A Pichau (403 no httpx) abre com o fetch do Scrapling (16/11/2026).
 STORES = (
     ("kabum", "KaBuM!", "https://www.kabum.com.br", None),
-    ("pichau", "Pichau", "https://www.pichau.com.br", "bloqueia robô (HTTP 403)"),
+    ("pichau", "Pichau", "https://www.pichau.com.br", None),
     ("terabyte", "Terabyte", "https://www.terabyteshop.com.br", None),
     ("amazon", "Amazon", "https://www.amazon.com.br", None),
     ("mercadolivre", "Mercado Livre", "https://www.mercadolivre.com.br",

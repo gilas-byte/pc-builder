@@ -7,6 +7,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
     "httpx>=0.27",  # coleta de preços
+    "scrapling[fetchers]>=0.5.1,<0.6",  # só o fetch da Pichau (fingerprint TLS de navegador) e o parser dela
 ]
 
 [dependency-groups]

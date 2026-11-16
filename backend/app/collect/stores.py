@@ -7,6 +7,7 @@ Regras de vendedor (decisão do projeto: loja oficial OU boa reputação):
 - KaBuM!: só vendido pelo próprio KaBuM! ou pela loja oficial do fabricante. A reputação dos outros
   vendedores do marketplace não aparece na busca, então ficam de fora.
 - Terabyte: só vende ela mesma.
+- Pichau: vende ela mesma (a busca não lista marketplace). Só lê com o fetch do Scrapling (ver `run.py`).
 - Amazon: a busca já vem filtrada por "vendido pela Amazon" (rh=p_6:A1ZZFT5FULY4LN).
 """
 
@@ -142,6 +143,49 @@ def parse_terabyte(page: str) -> list[Offer]:
     return out
 
 
+# --------------------------------------------------------------------------- Pichau
+
+def pichau_search_url(query: str) -> str:
+    return f"https://www.pichau.com.br/search?q={quote_plus(query)}"
+
+
+def _cents_us(value) -> int | None:
+    """A Pichau escreve 'R$ 3,099.99': vírgula = milhar, ponto = decimal (o `_cents` leria errado)."""
+    if not value:
+        return None
+    s = re.sub(r"[^\d.,]", "", html.unescape(str(value)))
+    try:
+        v = float(s.replace(",", ""))
+    except ValueError:
+        return None
+    return round(v * 100) if v > 0 else None
+
+
+def parse_pichau(page: str) -> list[Offer]:
+    if "validateCaptcha" in page or "Just a moment" in page[:3000]:
+        raise StoreBlocked("Pichau: desafio anti-bot")
+    from scrapling.parser import Selector
+    cards = Selector(page).css('a[data-cy="list-product"]')
+    if not cards and "Você buscou por" not in page:
+        raise ValueError("Pichau: página sem cards nem cabeçalho de busca (layout mudou?)")
+    out = []
+    for c in cards:
+        href = c.attrib.get("href", "")
+        title = html.unescape((c.css("h2::text").get() or "")).strip()
+        # classes têm hash por deploy (mui-12athy2-price_vista): casa pelo sufixo
+        cash = _cents_us(c.css('[class$="-price_vista"]::text').get())
+        if not (href.startswith("/") and title and cash):
+            continue   # sem preço = indisponível/sem oferta
+        img = c.css("img::attr(src)").get()
+        out.append(Offer(
+            store="pichau", url="https://www.pichau.com.br" + href, title=title, price_cash=cash,
+            price_installment=_cents_us(c.css('[class$="-price_total"]::text').get()),
+            in_stock=bool(c.css('[class*="availability_span_available"]')),   # selo "N UNID"
+            image_url=_https(img), seller="Pichau", condition=condition_from_title(title),
+        ))
+    return out
+
+
 # --------------------------------------------------------------------------- Amazon
 
 AMAZON_SELLER = "A1ZZFT5FULY4LN"  # "vendido pela Amazon" (Amazon.com.br)
@@ -179,6 +223,7 @@ def parse_amazon(page: str) -> list[Offer]:
 
 STORES = {
     "kabum": (kabum_search_url, parse_kabum),
+    "pichau": (pichau_search_url, parse_pichau),
     "terabyte": (terabyte_search_url, parse_terabyte),
     "amazon": (amazon_search_url, parse_amazon),
 }

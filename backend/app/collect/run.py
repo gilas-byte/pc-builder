@@ -55,6 +55,37 @@ def http_fetch() -> Fetch:
     return fetch
 
 
+BLOCK_STATUS = (403, 429, 503)
+SCRAPLING_HOSTS = ("pichau.com.br",)   # lojas que o httpx não alcança; as outras ficam no httpx
+
+
+def _scrapling_get(url: str) -> tuple[int, bytes]:
+    from scrapling.fetchers import Fetcher   # import tardio: pesado, e só a Pichau usa
+    r = Fetcher.get(url, timeout=25, stealthy_headers=True)   # HTTP com TLS de navegador; sem navegador real
+    return r.status, bytes(r.body)
+
+
+def scrapling_fetch(get: Callable[[str], tuple[int, bytes]] = _scrapling_get) -> Fetch:
+    """Fetch pelo Scrapling (`Fetcher`, sem modo stealth). Bloqueio continua sendo `StoreBlocked`: não contornamos."""
+    def fetch(url: str) -> str:
+        status, body = get(url)
+        if status in BLOCK_STATUS:
+            raise StoreBlocked(f"HTTP {status}")
+        if status >= 400:
+            raise RuntimeError(f"HTTP {status}")
+        text = body.decode("utf-8", "replace")
+        if "validateCaptcha" in text[:5000] or "account-verification" in text[:5000]:
+            raise StoreBlocked("página de verificação")
+        return text
+    return fetch
+
+
+def routed_fetch(http: Fetch | None = None, scrapling: Fetch | None = None) -> Fetch:
+    """Scrapling só nos hosts de SCRAPLING_HOSTS; httpx (já testado) nas demais lojas."""
+    http, scrapling = http or http_fetch(), scrapling or scrapling_fetch()
+    return lambda url: (scrapling if any(h in url.split("/")[2] for h in SCRAPLING_HOSTS) else http)(url)
+
+
 def collect(watchlist: list[Watch], fetch: Fetch, stores: list[str] | None = None,
             pause: float = PAUSE_S, log=print, registry: dict | None = None,
             ) -> tuple[list[tuple[Watch, Offer]], dict[str, str]]:
@@ -217,7 +248,7 @@ def _main(args, db_path, fetch, pause, now, notifier) -> int:
         stores = [s for s in STORES if on.get(s, True)]
     log = (lambda *_: None) if args.notify else (lambda m: print(m, file=sys.stderr))
 
-    found, errors = collect(watch, fetch or http_fetch(), stores, pause, log)
+    found, errors = collect(watch, fetch or routed_fetch(), stores, pause, log)
     batch = to_batch(found, now.isoformat())
 
     if args.dry_run:
