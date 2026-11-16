@@ -10,7 +10,7 @@ Ollama local (opcional; endereço nas Configurações, padrão 127.0.0.1:11434).
 
 ## Por quê
 
-As lojas que bloqueiam robô (Pichau, Mercado Livre, Shopee) aparecem o tempo todo nos canais públicos de promoção. Ler esses canais traz esses preços sem contornar bloqueio nenhum e enche o banco de referências.
+As lojas que bloqueiam robô (Mercado Livre, Shopee) aparecem o tempo todo nos canais públicos de promoção. Ler esses canais traz esses preços sem contornar bloqueio nenhum e enche o banco de referências.
 
 ## Decisões de projeto
 
