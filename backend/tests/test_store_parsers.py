@@ -8,8 +8,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.collect import run
-from app.collect.stores import (Offer, StoreBlocked, _cents, amazon_search_url, condition_from_title,
-                                parse_amazon, parse_kabum, parse_terabyte)
+from app.collect.stores import (STORES, Offer, StoreBlocked, _cents, _cents_us, amazon_search_url,
+                                condition_from_title, parse_amazon, parse_kabum, parse_pichau,
+                                parse_terabyte, pichau_search_url)
 from app.collect.watchlist import Watch, load_watchlist, norm
 from app.db import database as db
 from app.main import create_app
@@ -120,6 +121,7 @@ PAGES = {
     "kabum": (F / "kabum_busca.html").read_text(),
     "terabyte": (F / "terabyte_busca.html").read_text(),
     "amazon": (F / "amazon_busca.html").read_text(),
+    "pichau": (F / "pichau_busca.html").read_text(),   # busca de RTX 5060: nenhuma CPU da WL casa, só lê sem erro
 }
 WL = [Watch("cpu", "AMD", "Ryzen 7 5700X", "ryzen 7 5700x", ["ryzen 7 5700x"], ["5700x3d"], {"socket": "AM4"}),
       Watch("cpu", "AMD", "Ryzen 5 5600", "ryzen 5 5600", ["ryzen 5 5600"],
@@ -270,7 +272,8 @@ def test_api_mostra_condicao_vendedor_e_lojas_bloqueadas(tmp_path, wl_file):
     assert {o["condition"] for o in det["offers"]} == {"new"} and all(o["seller"] for o in det["offers"])
     lojas = {s["slug"]: s["status_note"] for s in c.get("/api/stores").json()}
     assert lojas["kabum"] is None and lojas["amazon"] is None
-    assert "bloqueia" in lojas["pichau"] and "bloqueia" in lojas["mercadolivre"] and "bloqueia" in lojas["shopee"]
+    assert lojas["pichau"] is None                                 # Pichau passou a ser lida (fetch Scrapling)
+    assert "bloqueia" in lojas["mercadolivre"] and "bloqueia" in lojas["shopee"]
 
 
 @pytest.mark.parametrize("titulo", [
@@ -296,3 +299,83 @@ def test_com_estoque_tem_prioridade_sobre_indisponivel_mais_barato():
                                 registry={"terabyte": (lambda q: "u", lambda page: offs)})
     assert errors == {}
     assert len(found) == 3 and found[0][1].in_stock and found[0][1].price_cash == 150000
+
+
+# ------------------------------------------------------------------ Pichau (página real salva em 16/11/2026)
+
+def test_centavos_pichau_formato_americano():
+    assert _cents_us("R$ 3,099.99") == 309999        # vírgula = milhar, ponto = decimal
+    assert _cents_us("R$ 999.90") == 99990
+    assert _cents_us("R$ 12,345.00") == 1234500
+    assert _cents_us("R$ 0.00") is None and _cents_us(None) is None and _cents_us("abc") is None
+
+
+def test_pichau_le_todos_os_cards_da_busca():
+    offs = parse_pichau((F / "pichau_busca.html").read_text())
+    assert len(offs) == 36                            # a página tem 36 cards, nenhum se perde
+    assert all(o.store == "pichau" and o.seller == "Pichau" and o.condition == "new" for o in offs)
+    assert all(o.url.startswith("https://www.pichau.com.br/") and o.price_cash < 10_000_000 for o in offs)
+    assert all(o.price_installment is None or o.price_installment >= o.price_cash for o in offs)
+    assert all(o.image_url is None or o.image_url.startswith("https://") for o in offs)
+
+
+def test_pichau_preco_a_vista_parcelado_e_estoque():
+    offs = parse_pichau((F / "pichau_busca.html").read_text())
+    pny = next(o for o in offs if "PNY GeForce RTX 5060 Dual OC" in o.title)
+    assert pny.price_cash == 309999 and pny.price_installment == 364705 and pny.in_stock
+    assert pny.url == "https://www.pichau.com.br/placa-de-video-pny-geforce-rtx-5060-dual-oc-8gb-gddr7-128-bit-vcg50608dfxpb1-o"
+    assert pny.image_url.startswith("https://media.pichau.com.br/")
+    inno = next(o for o in offs if "INNO3D" in o.title and "Twin X2 OC White" in o.title)
+    assert inno.price_cash == 299999 and not inno.in_stock
+    assert {o.in_stock for o in offs} == {True, False}
+
+
+def test_pichau_layout_mudou_da_erro_claro():
+    with pytest.raises(ValueError, match="layout"):
+        parse_pichau("<html><body>nada aqui</body></html>")
+
+
+def test_pichau_busca_sem_resultado_e_lista_vazia():
+    assert parse_pichau("<html><body><h5>Você buscou por: &quot;xyz&quot;</h5></body></html>") == []
+
+
+def test_pichau_desafio_antibot_levanta_bloqueio():
+    with pytest.raises(StoreBlocked):
+        parse_pichau("<html><title>Just a moment...</title>validateCaptcha</html>")
+
+
+def test_pichau_registrada_e_url_de_busca():
+    assert "pichau" in STORES
+    assert pichau_search_url("ryzen 5 5600") == "https://www.pichau.com.br/search?q=ryzen+5+5600"
+    assert STORES["pichau"][0] is pichau_search_url and STORES["pichau"][1] is parse_pichau
+
+
+# ------------------------------------------------------------------ fetch único: Scrapling em todas as lojas
+
+def test_coleta_usa_scrapling_em_todas_as_lojas_e_nunca_httpx(tmp_path, wl_file, monkeypatch, capsys):
+    import httpx
+    monkeypatch.setattr(httpx, "Client", lambda *a, **k: pytest.fail("a coleta de lojas não usa mais httpx"))
+    pedidas = []
+
+    def get(url):
+        pedidas.append(url)
+        loja = next(s for s in PAGES if s in url or (s == "terabyte" and "terabyteshop" in url))
+        return 200, PAGES[loja].encode()
+    monkeypatch.setattr(run, "_scrapling_get", get)
+    assert run.main(["--watchlist", wl_file, "--dry-run"], db_path=tmp_path / "t.db", pause=0) == 0
+    hosts = {u.split("/")[2] for u in pedidas}
+    assert hosts == {"www.kabum.com.br", "www.pichau.com.br", "www.terabyteshop.com.br", "www.amazon.com.br"}
+
+
+@pytest.mark.parametrize("status", [403, 429, 503])
+def test_fetch_scrapling_status_de_bloqueio(status):
+    f = run.scrapling_fetch(get=lambda url: (status, b"x"))
+    with pytest.raises(StoreBlocked, match=str(status)):
+        f("https://www.pichau.com.br/search?q=x")
+
+
+def test_fetch_scrapling_devolve_texto_e_erro_http_sobe():
+    ok = run.scrapling_fetch(get=lambda url: (200, "olá".encode()))
+    assert ok("https://www.pichau.com.br/") == "olá"
+    with pytest.raises(RuntimeError, match="500"):
+        run.scrapling_fetch(get=lambda url: (500, b""))("https://www.pichau.com.br/")

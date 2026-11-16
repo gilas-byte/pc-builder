@@ -10,7 +10,7 @@ Local Ollama (optional; address configured in Settings, default `127.0.0.1:11434
 
 ## Rationale
 
-Stores with aggressive bot blocking (Pichau, Mercado Livre, Shopee) appear constantly in public Telegram deal channels.
+Stores with aggressive bot blocking (Mercado Livre, Shopee) appear constantly in public Telegram deal channels.
 Scraping these channels retrieves those prices without bypassing anti-bot systems and populates the database with price references.
 
 ## Design Decisions

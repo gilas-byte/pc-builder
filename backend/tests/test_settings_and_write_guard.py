@@ -215,7 +215,7 @@ def test_sem_nenhuma_configuracao_salva_vale_o_de_hoje(env):
     j = env["c"].get("/api/settings").json()
     v = j["values"]
     assert v["language"] == "pt-BR" and v["notify_target"] == "stdout" and v["game_mode"] is False
-    assert v["stores"] == {"kabum": True, "terabyte": True, "amazon": True}
+    assert v["stores"] == {"kabum": True, "pichau": True, "terabyte": True, "amazon": True}
     assert v["collect_every_minutes"] == 1440
     assert v["price_range"] == {"min": 0, "max": 1_000_000}
     assert v["current_pc"]["socket"] == compat.CURRENT_PC["socket"] == "AM4"
@@ -228,7 +228,7 @@ def test_sem_nenhuma_configuracao_salva_vale_o_de_hoje(env):
 # =========================================================================== 3. settings: validação
 
 OK = [
-    ("language", "en"), ("stores", {"kabum": False, "terabyte": True, "amazon": True}),
+    ("language", "en"), ("stores", {"kabum": False, "pichau": True, "terabyte": True, "amazon": True}),
     ("collect_every_minutes", 15), ("collect_every_minutes", 1440), ("price_range", {"min": 0, "max": 0}),
     ("price_range", {"min": 100, "max": 1_000_000}), ("game_mode", True), ("notify_target", "none"),
     ("notify_target", "telegram"), ("ollama", {"url": "https://ollama.example:11434", "models": ["qwen2.5:3b"]}),
@@ -251,8 +251,8 @@ def test_valores_validos_sao_salvos(env, chave, valor):
 
 RUIM = [
     ("language", "fr"), ("language", 1), ("language", "pt-BR<script>"),
-    ("stores", {"kabum": False, "terabyte": False, "amazon": False}),         # nenhuma ligada
-    ("stores", {"pichau": True}), ("stores", {"kabum": "sim"}), ("stores", ["kabum"]),
+    ("stores", {"kabum": False, "pichau": False, "terabyte": False, "amazon": False}),         # nenhuma ligada
+    ("stores", {"shopee": True}), ("stores", {"kabum": "sim"}), ("stores", ["kabum"]),
     ("collect_every_minutes", 14), ("collect_every_minutes", 1441), ("collect_every_minutes", "60"),
     ("collect_every_minutes", 60.5), ("collect_every_minutes", True),
     ("price_range", {"min": 500, "max": 100}),                                 # min > max
@@ -314,8 +314,8 @@ def test_put_parcial_do_pc_completa_com_o_resto(env):
 
 def test_lojas_parcial_completa_com_o_resto_e_exige_uma_ligada(env):
     assert env["c"].put("/api/settings", json={"stores": {"kabum": False, "terabyte": False}}).status_code == 200
-    assert env["c"].get("/api/settings").json()["values"]["stores"] == {"kabum": False, "terabyte": False, "amazon": True}
-    assert env["c"].put("/api/settings", json={"stores": {"amazon": False}}).status_code == 422
+    assert env["c"].get("/api/settings").json()["values"]["stores"] == {"kabum": False, "pichau": True, "terabyte": False, "amazon": True}
+    assert env["c"].put("/api/settings", json={"stores": {"pichau": False, "amazon": False}}).status_code == 422
 
 
 def test_restaurar_padrao_restaura(env):
@@ -358,7 +358,7 @@ def test_precedencia_default_banco_env(env, monkeypatch):
 
 @pytest.mark.parametrize("var,valor,chave,esperado", [
     ("PCB_LANGUAGE", "en", "language", "en"),
-    ("PCB_STORES", "kabum,amazon", "stores", {"kabum": True, "terabyte": False, "amazon": True}),
+    ("PCB_STORES", "kabum,amazon", "stores", {"kabum": True, "pichau": False, "terabyte": False, "amazon": True}),
     ("PCB_PRICE_MIN", "100", "price_range", {"min": 100, "max": 1_000_000}),
     ("PCB_PRICE_MAX", "2000", "price_range", {"min": 0, "max": 2000}),
     ("PCB_GAME_MODE", "1", "game_mode", True),

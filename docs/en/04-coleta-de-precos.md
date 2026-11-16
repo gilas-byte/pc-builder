@@ -17,14 +17,14 @@ Português: [../04-coleta-de-precos.md](../04-coleta-de-precos.md)
 
 Each store was tested before joining the collector:
 
-Test with 1 search query per store ("rtx 4060"), `httpx` with standard browser User-Agent, 3 s throttle.
+Test with 1 search query per store ("rtx 4060"), `httpx` with standard browser User-Agent, 3 s throttle (since 2026-11-16 the collector uses Scrapling's `Fetcher` for every store; Pichau tested with "rtx 5060").
 
 | Store | Outcome | Method | Notes |
 |---|---|---|---|
 | KaBuM! | **works** | `__NEXT_DATA__` (Next.js hydrated JSON) | `price`, `priceWithDiscount` (cash), `image`, `sellerName`, `code`. Search includes laptops: filter by `category` |
 | Terabyte | **works** | HTML parsing: `data-tss-price`, `data-tss-estoque`, `.product-item__new-price` ("à vista no Pix") | reCAPTCHA present on checkout/forms only; catalog listings fully accessible. "Open Box" in title = used/open-box |
 | Amazon | **works** | HTML parsing: `data-asin`, `a-offscreen`, `s-image` | 48 search results. Mixes sponsored items and third-party sellers; requires strict filtering |
-| Pichau | **blocks** | HTTP 403 (anti-bot challenge) | Inaccessible without full browser automation |
+| Pichau | **works (Scrapling)** | `httpx` gets HTTP 403. Scrapling's `Fetcher` (plain HTTP with a browser TLS fingerprint, no real browser, no stealth mode) read the search page (2026-11-16). HTML: `a[data-cy="list-product"]`, `[class$="-price_vista"]` | US-style prices (`R$ 3,099.99`); CSS class names carry a per-deploy hash; stock = "N UNID" badge. A 403/429/503 drops the store from the round like any other |
 | Mercado Livre | **blocks** | Public search API returns 403 (ML closed open search API). Website redirects to `account-verification` | Third-party bypasses circumvent Cloudflare: violates project safety guidelines |
 | Shopee | **blocks** | Internal API: error 90309999 (requires auth). Website: verification challenge | Same as above |
 
@@ -32,7 +32,7 @@ Full headless browser automation: not tested. Even with headless browsers, verif
 
 Order of preference, lightest to heaviest:
 1. Structured page metadata (JSON-LD with `offers.price`, standard for SEO).
-2. Clean HTML parsing via `httpx`.
+2. HTML through Scrapling's `Fetcher` (plain HTTP with a browser TLS fingerprint, no real browser; plain `httpx` gets 403 on Pichau and, as of 2026-11-16, on Terabyte).
 3. Headless browser automation.
 
 **No anti-bot evasion.** Stores with captchas, anti-bot protection, or mandatory authentication are excluded
@@ -50,7 +50,7 @@ No checkout automation, shopping carts, or store account logins. The app reads p
 
 ## Accepted Stores and Listings
 
-- **Collected stores:** KaBuM!, Terabyte, and Amazon. Pichau, Mercado Livre, and Shopee block bots: they show in the UI as "excluded (blocking bots)" (`stores.status_note`).
+- **Collected stores:** KaBuM!, Terabyte, Amazon, and Pichau (all fetched through Scrapling's `Fetcher`, see `run.scrapling_fetch`). Mercado Livre and Shopee block bots: they show in the UI as "excluded (blocking bots)" (`stores.status_note`).
 - **Used items permitted.** The UI stores and shows the `condition` (new/used) per listing; deals are calculated independently per condition (used items do not pull down the 30-day median for new parts).
 - **Seller reputation:** accept **official stores OR sellers with a high rating**. The cutoff is defined per marketplace when testing the source.
 - Every source is tested before it is added; no anti-bot evasion, and blocking stores stay excluded.

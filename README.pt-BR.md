@@ -24,7 +24,7 @@ Dados de exemplo (o app começa com um banco de exemplo até o primeiro preço r
 ## Arquitetura
 
 ```
- lojas (KaBuM!, Terabyte, Amazon)         canais públicos do Telegram (t.me/s/<canal>)
+ lojas (KaBuM!, Terabyte, Amazon, Pichau) canais públicos do Telegram (t.me/s/<canal>)
             │  app.collect (agendado)               │  app.tg (agendado, a cada ~45 min)
             ▼                                       ▼
       lê o preço ──► app.ingest ──►  SQLite (data/pcbuilder.db)  ◄── classifica o tipo

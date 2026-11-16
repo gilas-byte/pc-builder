@@ -17,14 +17,14 @@ English: [docs/en/04-coleta-de-precos.md](en/04-coleta-de-precos.md)
 
 Cada loja foi testada antes de entrar na coleta:
 
-Teste com 1 busca por loja ("rtx 4060"), `httpx` com User-Agent de navegador, pausa de 3 s.
+Teste com 1 busca por loja ("rtx 4060"), `httpx` com User-Agent de navegador, pausa de 3 s (a partir de 16/11/2026 a coleta usa o `Fetcher` do Scrapling em todas as lojas; Pichau testada com "rtx 5060").
 
 | loja | resultado | como | observação |
 |---|---|---|---|
 | KaBuM! | **funciona** | `__NEXT_DATA__` (JSON do Next.js) | `price`, `priceWithDiscount` (à vista), `image`, `sellerName`, `code`. Busca traz notebook junto: filtrar por `category` |
 | Terabyte | **funciona** | HTML: `data-tss-price`, `data-tss-estoque`, `.product-item__new-price` ("à vista no Pix") | tem reCAPTCHA na página, mas só no checkout/form; a listagem veio inteira. Títulos com "Open Box" = usado/aberto |
 | Amazon | **funciona** | HTML: `data-asin`, `a-offscreen`, `s-image` | 48 resultados. Tem patrocinado misturado e vendedor de terceiro; precisa filtrar |
-| Pichau | **bloqueia** | HTTP 403 (proteção anti-bot) | sem navegador não dá |
+| Pichau | **funciona (Scrapling)** | `httpx` leva HTTP 403. O `Fetcher` do Scrapling (HTTP com TLS de navegador, sem navegador real, sem modo stealth) leu a busca (16/11/2026). HTML: `a[data-cy="list-product"]`, `[class$="-price_vista"]` | preço em formato americano (`R$ 3,099.99`); classes CSS com hash por deploy; estoque = selo "N UNID". Se voltar 403/429/503, a loja sai da rodada como as outras |
 | Mercado Livre | **bloqueia** | API pública de busca: 403 (o ML fechou a busca aberta). Site: redireciona pra `account-verification` | os serviços que "resolvem" isso contornam Cloudflare: fora da regra |
 | Shopee | **bloqueia** | API: erro 90309999 (exige login). Site: página de verificação | idem |
 
@@ -32,7 +32,7 @@ Navegador de verdade (automação de navegador): não testado. Mesmo com navegad
 
 Ordem de tentativa, do mais leve ao mais pesado:
 1. Dados estruturados da página (JSON-LD com `offers.price`, que muita loja coloca pra SEO).
-2. HTML com `httpx`.
+2. HTML pelo `Fetcher` do Scrapling (HTTP com TLS de navegador, sem navegador real; o `httpx` puro leva 403 na Pichau e, em 16/11/2026, na Terabyte).
 3. Navegador de verdade (automação de navegador).
 
 **Não contorna bloqueio.** Captcha, proteção anti-bot ou exigência de login: a loja fica de fora e a tela
@@ -50,7 +50,7 @@ Nada de comprar, carrinho ou login nas lojas. O app só lê preço.
 
 ## Lojas e anúncios aceitos
 
-- **Lojas coletadas:** KaBuM!, Terabyte e Amazon. Pichau, Mercado Livre e Shopee bloqueiam robô: aparecem na tela como "fora (bloqueiam robô)" (`stores.status_note`).
+- **Lojas coletadas:** KaBuM!, Terabyte, Amazon e Pichau (todas lidas pelo `Fetcher` do Scrapling, ver `run.scrapling_fetch`). Mercado Livre e Shopee bloqueiam robô: aparecem na tela como "fora (bloqueiam robô)" (`stores.status_note`).
 - **Usado pode** (não precisa ser novo). A tela guarda e mostra a `condition` (novo/usado) por anúncio; a promoção é calculada separada por condição (usado não puxa a mediana do novo pra baixo).
 - **Vendedor:** aceita **loja oficial OU vendedor com boa reputação**. O corte de reputação é definido por marketplace ao testar a fonte.
 - Cada fonte é testada antes de entrar; não se contorna anti-bot, e fonte que bloquear fica de fora.

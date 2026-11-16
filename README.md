@@ -23,7 +23,7 @@ Sample data (the app starts with an example database until the first real price 
 ## Architecture
 
 ```
- stores (KaBuM!, Terabyte, Amazon)        public Telegram channels (t.me/s/<channel>)
+ stores (KaBuM!, Terabyte, Amazon, Pichau) public Telegram channels (t.me/s/<channel>)
             │  app.collect (scheduled)              │  app.tg (scheduled, every ~45 min)
             ▼                                       ▼
         parse price ──► app.ingest ──►  SQLite (data/pcbuilder.db)  ◄── classify type

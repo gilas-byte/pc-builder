@@ -27,8 +27,6 @@ from ..schemas import IngestBatch
 from .stores import STORES, Offer, StoreBlocked
 from .watchlist import WATCHLIST, Watch, load_watchlist
 
-UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-      "Chrome/130.0 Safari/537.36")
 PER_STORE_PER_PART = 3   # guarda só os 3 anúncios mais baratos de cada peça em cada loja
 PAUSE_S = 4.0
 ALERT_COOLDOWN_DAYS = 7
@@ -37,21 +35,30 @@ PANEL_URL = "http://127.0.0.1:8787"   # link no fim do aviso; PCB_PANEL_URL troc
 Fetch = Callable[[str], str]
 
 
-def http_fetch() -> Fetch:
-    import httpx
+BLOCK_STATUS = (403, 429, 503)
 
-    client = httpx.Client(headers={"User-Agent": UA, "Accept-Language": "pt-BR,pt;q=0.9"},
-                          follow_redirects=True, timeout=25)
 
+def _scrapling_get(url: str) -> tuple[int, bytes]:
+    from scrapling.fetchers import Fetcher   # import tardio: pesado
+    r = Fetcher.get(url, timeout=25, stealthy_headers=True)   # HTTP com TLS de navegador; sem navegador real
+    if "account-verification" in str(r.url) or "validateCaptcha" in str(r.url):   # redirecionou pra verificação
+        raise StoreBlocked("página de verificação")
+    return r.status, bytes(r.body)
+
+
+def scrapling_fetch(get: Callable[[str], tuple[int, bytes]] | None = None) -> Fetch:
+    """Fetch único das lojas: `Fetcher` do Scrapling (sem modo stealth). Bloqueio continua sendo `StoreBlocked`:
+    não contornamos. `get` só troca nos testes (por padrão resolve `_scrapling_get` na hora da chamada)."""
     def fetch(url: str) -> str:
-        r = client.get(url)
-        if r.status_code in (403, 429, 503):
-            raise StoreBlocked(f"HTTP {r.status_code}")
-        r.raise_for_status()
-        if "account-verification" in str(r.url) or "validateCaptcha" in str(r.url):
+        status, body = (get or _scrapling_get)(url)
+        if status in BLOCK_STATUS:
+            raise StoreBlocked(f"HTTP {status}")
+        if status >= 400:
+            raise RuntimeError(f"HTTP {status}")
+        text = body.decode("utf-8", "replace")
+        if "validateCaptcha" in text[:5000] or "account-verification" in text[:5000]:
             raise StoreBlocked("página de verificação")
-        return r.text
-
+        return text
     return fetch
 
 
@@ -217,7 +224,7 @@ def _main(args, db_path, fetch, pause, now, notifier) -> int:
         stores = [s for s in STORES if on.get(s, True)]
     log = (lambda *_: None) if args.notify else (lambda m: print(m, file=sys.stderr))
 
-    found, errors = collect(watch, fetch or http_fetch(), stores, pause, log)
+    found, errors = collect(watch, fetch or scrapling_fetch(), stores, pause, log)
     batch = to_batch(found, now.isoformat())
 
     if args.dry_run:
