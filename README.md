@@ -1,14 +1,36 @@
 # PC Builder
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) ![Language: Python](https://img.shields.io/badge/language-Python-blue.svg)
+
 **English** · [Português (Brasil)](README.pt-BR.md)
 
 A local, self-hosted dashboard that tracks PC part prices from Brazilian stores and from public Telegram deal
-channels, keeps the price history, and highlights real deals (price below the 30-day median). It also builds the
-cheapest compatible full PC and lists upgrades compatible with your current PC. Dark UI, bilingual interface in Portuguese and English (selectable in Settings > Language; defaults to pt-BR; backend messages remain in Portuguese).
+channels, keeps price history, and highlights deals below the 30-day median.
+
+## What it does
+
+It builds the cheapest compatible full PC and lists upgrades compatible with your current PC. Dark UI, bilingual interface in Portuguese and English (selectable in Settings > Language; defaults to pt-BR; backend messages remain in Portuguese).
 
 The **Settings** screen (gear icon) controls channels, stores, your current PC, price range, alerts through your
 own Telegram bot, the internal scheduler, and language. It runs locally, with Docker compose, or scheduled by Hermes
 Agent (see [docs/en/HERMES.md](docs/en/HERMES.md)).
+
+### Limitations
+
+The app reads public prices only: no checkout automation, shopping carts, or store account logins.
+
+Collecting prices from store websites can **break at any time** (sites change) and **may violate a site's terms
+of use**. This project is for **personal use**, at low volume, and does not bypass captchas, anti-bot protection
+or logins; stores that block automated access are simply left out. **You are responsible for how you use it.**
+This project is **not affiliated** with any store, nor with Telegram.
+
+## Repository structure
+
+- `backend/`: FastAPI API, SQLite persistence, store and Telegram collectors, Python tests, and `watchlist.json`.
+- `frontend/`: React + Vite interface, translations, and frontend tests.
+- `deploy/`: collection scripts and a systemd user-service template.
+- `docs/`: technical documentation in Portuguese, English translations in `docs/en/`, and screenshots.
+- `Dockerfile`, `docker-compose.yml`, `.env.example`, and `tools/check_public.py`: container setup, environment examples, and public hygiene checks.
 
 ## Screenshots
 
@@ -40,26 +62,27 @@ Sample data (the app starts with an example database until the first real price 
 - Alerts go to the target chosen in Settings: **your Telegram bot**, **script output** (stdout; whatever schedules
   the script delivers it, e.g. cron or Hermes Agent) or none. Empty output = nothing to report.
 
-## Requirements
+## How to run
+
+### Requirements
 
 - Linux or macOS, Python 3.11 and [uv](https://docs.astral.sh/uv/)
-- Node.js 20+ and npm (to build the UI)
+- Node.js 20.19+ (20.x) or 22.12+ and npm (to build the UI; Docker uses Node.js 24)
 - Optional: [Ollama](https://ollama.com/) with small models for the Telegram channel classifier. Without it, the
   app uses rules (see "Local AI" below)
 
-## Run locally
+### Run locally
 
 ```sh
-git clone <repository-url> pc-builder && cd pc-builder
+git clone https://github.com/gilas-byte/pc-builder.git && cd pc-builder
 cd frontend && npm ci && npm run build && cd ..
 cd backend && uv sync && uv run python -m app.serve
 ```
 
 Open <http://127.0.0.1:8787>. Until the first real price is collected, the app shows **sample data** (yellow
-"EXEMPLO" banner). To collect real prices:
+"EXEMPLO" banner). To collect real prices, open another terminal in `backend/`:
 
 ```sh
-cd backend
 uv run python -m app.collect --dry-run     # stores: show what would be saved
 uv run python -m app.collect               # stores: save
 uv run python -m app.tg                    # Telegram channels
@@ -126,7 +149,7 @@ an allowed `Origin` (default `127.0.0.1:8787` and `localhost:8787`); add your pr
 Needs Docker with the compose plugin. No Python, Node or uv on the host.
 
 ```sh
-git clone <repository-url> pc-builder && cd pc-builder
+git clone https://github.com/gilas-byte/pc-builder.git && cd pc-builder
 cp .env.example .env          # optional: without a .env it also starts
 docker compose up -d --build
 ```
@@ -206,9 +229,11 @@ publish the port on `0.0.0.0` without a proxy and never expose it to the interne
 
 ## Tests
 
+Run each command from the repository root:
+
 ```sh
-cd backend && uv run python -B -m pytest -q     # backend
-cd frontend && npx vitest run                   # frontend
+(cd backend && uv run python -B -m pytest -q)   # backend
+(cd frontend && npx vitest run)                 # frontend
 python3 tools/check_public.py                   # public hygiene: no personal data or secrets in the repo
 ```
 
@@ -223,18 +248,15 @@ Full documentation in English in [docs/en/](docs/en/) and in Portuguese in [docs
 - [Telegram channels](docs/en/05-canais-telegram.md): reading public channels, classifying and alerting.
 - [Hermes Agent](docs/en/HERMES.md): scheduling with a Hermes Agent cron (optional).
 
-## Scraping disclaimer
-
-Collecting prices from store websites can **break at any time** (sites change) and **may violate a site's terms
-of use**. This project is for **personal use**, at low volume, and does not bypass captchas, anti-bot protection
-or logins; stores that block automated access are simply left out. **You are responsible for how you use it.**
-This project is **not affiliated** with any store, nor with Telegram.
-
 ## Reporting a problem
 
 Open an issue on the repository with what you did, what you expected and what happened (logs help). **Never paste
 a token, password or personal data in an issue.** For security problems, see [SECURITY.md](SECURITY.md).
 Contributions: [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Status
+
+Active.
 
 ## License
 
